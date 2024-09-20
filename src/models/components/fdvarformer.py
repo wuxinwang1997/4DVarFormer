@@ -270,11 +270,7 @@ class Model_H(torch.nn.Module):
 
         return dyout
 
-# 4DVarNN Solver class using automatic differentiation for the computation of gradient of the variational cost
-# input modules: operator phi_r, gradient-based update model m_Grad
-# modules for the definition of the norm of the observation and prior terms given as input parameters
-# (default norm (None) refers to the L2 norm)
-# updated inner modles to account for the variational model module
+
 class Solver(nn.Module):
     def __init__(self ,phi_r,mod_H, m_Grad, num_vars, obserr, shape_data, n_iter):
         super(Solver, self).__init__()
