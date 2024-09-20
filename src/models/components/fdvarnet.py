@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Fri May  1 15:38:05 2020
-
-@author: rfablet
-"""
-
 import numpy as np
 import torch
 from torch import nn
