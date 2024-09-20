@@ -1,0 +1,7 @@
+_target_: src.datamodules.assim_datamodule.AssimDataModule
+data_dir: ${paths.data_dir}/assim_dir_3day
+batch_size: 64
+modelname: fourcastnet
+num_workers: 2
+pin_memory: True
+prefetch_factor: 2

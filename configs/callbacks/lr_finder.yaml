@@ -1,0 +1,6 @@
+# Generates a summary of all layers in a LightningModule with rich text formatting.
+# Look at the above link for more detailed information.
+lr_finder:
+  _target_: pytorch_lightning.callbacks.LearningRateFinder
+  min_lr: 5e-4
+  max_lr: 5e-1 # the maximum depth of layer nesting that the summary will include

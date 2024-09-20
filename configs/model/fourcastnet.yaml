@@ -1,0 +1,41 @@
+_target_: src.models.fourcastnet_module.FourCastNetLitModule
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 5e-4
+  betas: [0.9, 0.95]
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  _partial_: true
+  T_max: 120
+  verbose: True
+  eta_min: 1e-8
+  
+net:
+  _target_: src.models.components.afnonet.AFNONet
+  img_size: [160, 160]
+  patch_size: [8, 8]
+  in_chans: 24
+  out_chans: 24
+  embed_dim: 768
+  depth: 6
+  mlp_ratio: 4.
+  drop_rate: 0.
+  drop_path_rate: 0.
+  double_skip: true
+  num_blocks: 8
+  sparsity_threshold: 0.01
+  hard_thresholding_fraction: 1.0
+
+mean_path: ${paths.data_dir}/ffr_era5/normalize_mean.npz
+std_path: ${paths.data_dir}/ffr_era5/normalize_std.npz
+clim_paths:
+  - ${paths.data_dir}/ffr_era5/train.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/val.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/test.ffr/climatology.npz
+one_step_epochs: 80
+var_idx_dir: ${paths.data_dir}/ffr_era5/var_idx.npy
+loss:
+  _target_: torch.nn.L1Loss

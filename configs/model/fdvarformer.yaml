@@ -1,0 +1,66 @@
+_target_: src.models.fdvarformer_module.FDVarFormerLitModule
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 5e-4
+  betas: [0.9, 0.95]
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  _partial_: true
+  T_max: 100
+  verbose: True
+
+net:
+  _target_: src.models.components.fdvarformer.Solver
+  phi_r:
+    _target_: src.models.components.afnonet.AFNONet
+    img_size: [160, 160]
+    patch_size: [8, 8]
+    in_chans: 24
+    out_chans: 24
+    embed_dim: 768
+    depth: 6
+    mlp_ratio: 4.
+    drop_rate: 0.
+    drop_path_rate: 0.
+    double_skip: true
+    num_blocks: 8
+    sparsity_threshold: 0.01
+    hard_thresholding_fraction: 1.0
+  mod_H:
+    _target_: src.models.components.fdvarformer.Model_H
+    shape_data: [4, 24]
+  m_Grad:
+    _target_: src.models.components.fdvarformer.FDVarFormer
+    image_size: [160, 160]
+    patch_size: [8, 8]
+    dim: 512
+    depth: 4
+    heads: 8
+    in_chans: 24
+    out_chans: 24
+    dropout: 0.1
+    mlp_ratio: 4
+    emb_dropout: 0.1
+  shape_data: [24, 160, 160]
+  num_vars: 24
+  # [z50, z500, z850, z1000, r50, r500, r850, r1000, t50, t500, t850, t1000,
+  # u50, u500, u850, u1000, v50, v500, v850, v1000, u10, v10, t2m, msl]
+  obserr: [0, 0, 0, 0, 14, 10, 13, 13, 2.0, 0.5, 1.4, 2.2, 0, 0, 0, 0, 0, 0, 0, 0, 1.43, 1.40, 0, 0]
+  n_iter: 1
+
+# ["r@50", "r@500", "r@850", "r@1000", "t@50", "t@500", "t@850", "t@1000", "u10","v10"]
+obs_vars: [20,21]
+mean_path: ${paths.data_dir}/ffr_era5/normalize_mean.npz
+std_path: ${paths.data_dir}/ffr_era5/normalize_std.npz
+clim_paths:
+  - ${paths.data_dir}/ffr_era5/train.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/val.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/test.ffr/climatology.npz
+var_idx_dir: ${paths.data_dir}/ffr_era5/var_idx.npy
+loss:
+#  _target_: src.utils.darcy_loss.LpLoss
+  _target_: torch.nn.L1Loss
+pred_ckpt: ../ckpts/fourcastnet.ckpt

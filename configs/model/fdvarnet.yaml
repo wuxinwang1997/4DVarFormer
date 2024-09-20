@@ -1,0 +1,68 @@
+_target_: src.models.fdvarnet_module.FDVarNetLitModule
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 1e-3
+#  betas: [0.9, 0.95]
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  _partial_: true
+  T_max: 100
+  verbose: True
+
+net:
+  _target_: src.models.components.fdvarnet.Solver_Grad_4DVarNN
+  phi_r:
+    _target_: src.models.components.afnonet.AFNONet
+    img_size: [160, 160]
+    patch_size: [8, 8]
+    in_chans: 24
+    out_chans: 24
+    embed_dim: 768
+    depth: 6
+    mlp_ratio: 4.
+    drop_rate: 0.
+    drop_path_rate: 0.
+    double_skip: true
+    num_blocks: 8
+    sparsity_threshold: 0.01
+    hard_thresholding_fraction: 1.0
+  mod_H:
+    _target_: src.models.components.fdvarnet.Model_H
+    shape_data: [4, 24]
+  m_Grad:
+    _target_: src.models.components.fdvarnet.model_GradUpdateLSTM
+    ShapeData: [24, 160, 160]
+    periodicBnd: false
+    DimLSTM: 0
+    rateDropout: 0.
+    stochastic: false
+  m_NormObs: l2
+  m_NormPhi: l2
+  shape_data: [24, 160, 160]
+  n_iter_grad: 10
+  stochastic: false
+
+img_grad:
+  _target_: src.models.components.fdvarnet.Gradient_img
+
+# ["r@50", "r@500", "r@850", "r@1000", "t@50", "t@500", "t@850", "t@1000", "u10","v10"]
+obs_vars: [8,9,10,11,20,21]
+mean_path: ${paths.data_dir}/ffr_era5/normalize_mean.npz
+std_path: ${paths.data_dir}/ffr_era5/normalize_std.npz
+clim_paths:
+  - ${paths.data_dir}/ffr_era5/train.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/val.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/test.ffr/climatology.npz
+var_idx_dir: ${paths.data_dir}/ffr_era5/var_idx.npy
+iter_update: [0, 20, 40, 60, 100, 150, 800]
+nb_grad_update: [5, 5, 5, 5, 5, 5, 5, 5, 5]
+lr_update: [0.001, 0.001, 0.001, 1e-5, 1e-5, 1.0e-06, 1.0e-07, 1.0e-08, 1.0e-09]
+alpha: [1, 0]
+device: "cuda:0"
+loss:
+#  _target_: src.utils.darcy_loss.LpLoss
+  _target_: torch.nn.L1Loss
+pred_ckpt: ../ckpts/fourcastnet.ckpt

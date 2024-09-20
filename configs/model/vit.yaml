@@ -1,0 +1,48 @@
+_target_: src.models.map_module.MapLitModule
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 5e-4
+  betas: [0.9, 0.95]
+#  weight_decay: 3e-6
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  _partial_: true
+  T_max: 100
+  verbose: True
+  
+net:
+  _target_: src.models.components.vit.ViT
+  image_size: [160, 160]
+  patch_size: [16, 16]
+  dim: 768
+  depth: 12
+  heads: 12
+  in_chans: 48
+  out_chans: 24
+  dropout: 0.
+  mlp_ratio: 4
+  emb_dropout: 0.
+
+#obs_vars: ["z@50", "z@500", "z@850", "z@1000",
+#           "r@50", "r@500", "r@850", "r@1000",
+#           "t@50", "t@500", "t@850", "t@1000",
+#           "u@50", "u@500", "u@850", "u@1000",
+#           "v@50", "v@500", "v@850", "v@1000",
+#           "u@10", "v@10", "t2m", "msl"]
+#obs_vars: ["r@50", "r@500", "r@850", "r@1000", "t@50", "t@500", "t@850", "t@1000", "u10","v10"]
+#obs_vars: ["r@50", "r@500", "r@850", "r@1000", "u10","v10"
+obs_vars: [8,9,10,11,20,21]
+#obs_vars: ["u10","v10"]
+mean_path: ${paths.data_dir}/ffr_era5/normalize_mean.npz
+std_path: ${paths.data_dir}/ffr_era5/normalize_std.npz
+clim_paths:
+  - ${paths.data_dir}/ffr_era5/train.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/val.ffr/climatology.npz
+  - ${paths.data_dir}/ffr_era5/test.ffr/climatology.npz
+var_idx_dir: ${paths.data_dir}/ffr_era5/var_idx.npy
+device: "cuda:0"
+loss:
+  _target_: torch.nn.L1Loss
